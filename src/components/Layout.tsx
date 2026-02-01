@@ -12,7 +12,10 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
-  const { isAuthenticated, isAdmin, signOut } = useAuth();
+  const { isAuthenticated, isPriest, isSuperAdmin, signOut, userRole } = useAuth();
+
+  // Mostrar "Aprovar Usuários" para padres e super admins
+  const canApproveUsers = isPriest || isSuperAdmin;
 
   const navItems = [
     { path: "/dashboard", icon: Church, label: "Início" },
@@ -20,8 +23,15 @@ const Layout = ({ children }: LayoutProps) => {
     { path: "/slides", icon: Presentation, label: "Slides" },
     { path: "/escalas", icon: Calendar, label: "Escalas" },
     { path: "/liturgia", icon: BookOpen, label: "Liturgia" },
-    ...(isAdmin ? [{ path: "/user-approvals", icon: UserCheck, label: "Aprovar Usuários" }] : []),
+    ...(canApproveUsers ? [{ path: "/user-approvals", icon: UserCheck, label: "Aprovar Usuários" }] : []),
   ];
+
+  const getRoleBadge = () => {
+    if (isSuperAdmin) return { label: "Super Admin", variant: "destructive" as const };
+    if (isPriest) return { label: "Padre", variant: "secondary" as const };
+    if (userRole === 'admin') return { label: "Admin", variant: "default" as const };
+    return { label: "✓ Logado", variant: "default" as const };
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,8 +51,8 @@ const Layout = ({ children }: LayoutProps) => {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <Badge variant="default" className="hidden sm:flex">
-                  ✓ Logado
+                <Badge variant={getRoleBadge().variant} className="hidden sm:flex">
+                  {getRoleBadge().label}
                 </Badge>
                 <Button 
                   variant="outline" 

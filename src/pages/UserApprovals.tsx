@@ -9,9 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, Clock, Search, Users } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Search, Users, Church, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
@@ -22,10 +23,16 @@ interface UserProfile {
   created_at: string;
   approved_at: string | null;
   rejection_reason: string | null;
+  parish_id: string | null;
+}
+
+interface Parish {
+  id: string;
+  name: string;
 }
 
 export default function UserApprovals() {
-  const { user } = useAuth();
+  const { user, isPriest, isSuperAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<ApprovalStatus | "all">("pending");
@@ -33,8 +40,40 @@ export default function UserApprovals() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
+  // Buscar perfil do padre para obter a paróquia
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('parish_id')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Buscar paróquia do padre
+  const { data: parish } = useQuery({
+    queryKey: ['parish', userProfile?.parish_id],
+    queryFn: async () => {
+      if (!userProfile?.parish_id) return null;
+      const { data, error } = await supabase
+        .from('parishes')
+        .select('*')
+        .eq('id', userProfile.parish_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Parish;
+    },
+    enabled: !!userProfile?.parish_id,
+  });
+
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ['user-profiles', selectedStatus, searchQuery],
+    queryKey: ['user-profiles', selectedStatus, searchQuery, userProfile?.parish_id],
     queryFn: async () => {
       let query = supabase
         .from('user_profiles')
@@ -53,6 +92,7 @@ export default function UserApprovals() {
       if (error) throw error;
       return data as UserProfile[];
     },
+    enabled: isPriest || isSuperAdmin,
   });
 
   const approveMutation = useMutation({
@@ -144,16 +184,37 @@ export default function UserApprovals() {
 
   const pendingCount = profiles?.filter(p => p.approval_status === 'pending').length || 0;
 
+  // Se não for padre nem super admin, mostrar mensagem de acesso negado
+  if (!isPriest && !isSuperAdmin) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="p-8 text-center">
+          <AlertTriangle className="h-12 w-12 mx-auto text-destructive mb-4" />
+          <h2 className="text-xl font-bold mb-2">Acesso Restrito</h2>
+          <p className="text-muted-foreground">
+            Esta página é exclusiva para padres e administradores.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Users className="h-8 w-8" />
-            Gerenciar Usuários
+            Aprovar Usuários
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Aprovar ou rejeitar novos cadastros no sistema
+          <p className="text-muted-foreground mt-1 flex items-center gap-2">
+            {parish && (
+              <>
+                <Church className="h-4 w-4" />
+                Paróquia: <strong>{parish.name}</strong>
+              </>
+            )}
+            {!parish && isSuperAdmin && "Visualizando todos os usuários"}
           </p>
         </div>
         {pendingCount > 0 && (
@@ -198,7 +259,8 @@ export default function UserApprovals() {
                         <CardTitle className="text-lg">{profile.email}</CardTitle>
                         <CardDescription>
                           Cadastrado há {formatDistanceToNow(new Date(profile.created_at), { 
-                            addSuffix: true
+                            addSuffix: false,
+                            locale: ptBR
                           })}
                         </CardDescription>
                       </div>
@@ -230,8 +292,9 @@ export default function UserApprovals() {
                       )}
                       {profile.approval_status === 'approved' && profile.approved_at && (
                         <p className="text-sm text-muted-foreground">
-                          Aprovado {formatDistanceToNow(new Date(profile.approved_at), { 
-                            addSuffix: true
+                          Aprovado há {formatDistanceToNow(new Date(profile.approved_at), { 
+                            addSuffix: false,
+                            locale: ptBR
                           })}
                         </p>
                       )}

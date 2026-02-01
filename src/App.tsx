@@ -13,6 +13,7 @@ import Escalas from "./pages/Escalas";
 import Liturgia from "./pages/Liturgia";
 import Auth from "./pages/Auth";
 import UserApprovals from "./pages/UserApprovals";
+import SuperAdmin from "./pages/SuperAdmin";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/super-admin" element={<SuperAdmin />} />
             <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
             <Route path="/musicas" element={<Layout><Musicas /></Layout>} />
             <Route path="/slides" element={<Layout><Slides /></Layout>} />
