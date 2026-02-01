@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Church, Music, Calendar, BookOpen } from "lucide-react";
+import { Music, Calendar, BookOpen } from "lucide-react";
 import heroImage from "@/assets/hero-church-music.jpg";
+import logoImage from "@/assets/logo-cantare.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -18,13 +19,15 @@ const Landing = () => {
       {/* Content */}
       <div className="relative flex flex-col items-center justify-center min-h-screen">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-8 animate-fade-in">
-          {/* Ícone principal */}
+          {/* Logo principal */}
           <div className="flex justify-center">
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-glow-pulse" />
-              <div className="relative bg-primary rounded-full p-8 shadow-golden">
-                <Church className="w-20 h-20 text-primary-foreground" />
-              </div>
+              <img 
+                src={logoImage} 
+                alt="CANTARE Logo" 
+                className="relative w-40 h-40 object-contain drop-shadow-xl"
+              />
             </div>
           </div>
 

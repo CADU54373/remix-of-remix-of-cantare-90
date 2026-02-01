@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import logoImage from "@/assets/logo-cantare.png";
 
 interface LayoutProps {
   children: ReactNode;
@@ -39,9 +40,11 @@ const Layout = ({ children }: LayoutProps) => {
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-soft">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-              <Church className="w-6 h-6 text-primary-foreground" />
-            </div>
+            <img 
+              src={logoImage} 
+              alt="CANTARE Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-none">CANTARE</span>
               <span className="text-xs text-muted-foreground">Gestão de Ministério de Música</span>
