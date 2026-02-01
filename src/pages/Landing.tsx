@@ -85,7 +85,7 @@ const Landing = () => {
             </Button>
             <Button
               size="lg"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/visitor-select")}
               variant="outline"
               className="text-lg px-12 py-6 border-2"
             >
