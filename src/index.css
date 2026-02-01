@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 280 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 280 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 280 30% 15%;
+
+    /* Roxo litúrgico - cor primária */
+    --primary: 280 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 280 65% 65%;
+    --primary-dark: 280 75% 35%;
+
+    /* Dourado - cor secundária */
+    --secondary: 45 90% 55%;
+    --secondary-foreground: 280 30% 15%;
+    --secondary-light: 45 85% 70%;
+
+    /* Azul celestial - accent */
+    --accent: 210 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 210 100% 65%;
+
+    /* Destaque dourado para salmo */
+    --golden: 45 95% 50%;
+    --golden-glow: 45 100% 70%;
+
+    --muted: 280 15% 96%;
+    --muted-foreground: 280 10% 45%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 280 15% 88%;
+    --input: 280 15% 88%;
+    --ring: 280 70% 50%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 280 40% 98%;
+    --sidebar-foreground: 280 30% 20%;
+    --sidebar-primary: 280 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 280 20% 93%;
+    --sidebar-accent-foreground: 280 30% 20%;
+    --sidebar-border: 280 15% 88%;
+    --sidebar-ring: 280 70% 50%;
+
+    /* Gradientes */
+    --gradient-primary: linear-gradient(135deg, hsl(280 70% 50%), hsl(280 75% 35%));
+    --gradient-golden: linear-gradient(135deg, hsl(45 95% 50%), hsl(45 90% 65%));
+    --gradient-celestial: linear-gradient(135deg, hsl(210 100% 50%), hsl(210 100% 65%));
+
+    /* Sombras */
+    --shadow-soft: 0 2px 8px hsl(280 30% 15% / 0.08);
+    --shadow-medium: 0 4px 16px hsl(280 30% 15% / 0.12);
+    --shadow-golden: 0 4px 20px hsl(45 95% 50% / 0.3);
+
+    /* Transições */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 280 30% 10%;
+    --foreground: 280 10% 95%;
+
+    --card: 280 25% 12%;
+    --card-foreground: 280 10% 95%;
+
+    --popover: 280 25% 12%;
+    --popover-foreground: 280 10% 95%;
+
+    --primary: 280 65% 60%;
+    --primary-foreground: 280 30% 10%;
+    --primary-light: 280 60% 70%;
+    --primary-dark: 280 70% 45%;
+
+    --secondary: 45 85% 60%;
+    --secondary-foreground: 280 30% 10%;
+    --secondary-light: 45 80% 75%;
+
+    --accent: 210 95% 60%;
+    --accent-foreground: 280 30% 10%;
+    --accent-light: 210 90% 70%;
+
+    --golden: 45 90% 60%;
+    --golden-glow: 45 95% 75%;
+
+    --muted: 280 20% 18%;
+    --muted-foreground: 280 10% 60%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 280 20% 20%;
+    --input: 280 20% 20%;
+    --ring: 280 65% 60%;
+
+    --sidebar-background: 280 30% 12%;
+    --sidebar-foreground: 280 10% 90%;
+    --sidebar-primary: 280 65% 60%;
+    --sidebar-primary-foreground: 280 30% 10%;
+    --sidebar-accent: 280 20% 18%;
+    --sidebar-accent-foreground: 280 10% 90%;
+    --sidebar-border: 280 20% 20%;
+    --sidebar-ring: 280 65% 60%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(280 65% 60%), hsl(280 70% 45%));
+    --gradient-golden: linear-gradient(135deg, hsl(45 90% 60%), hsl(45 85% 75%));
+    --gradient-celestial: linear-gradient(135deg, hsl(210 95% 60%), hsl(210 90% 70%));
+
+    --shadow-soft: 0 2px 8px hsl(0 0% 0% / 0.3);
+    --shadow-medium: 0 4px 16px hsl(0 0% 0% / 0.4);
+    --shadow-golden: 0 4px 20px hsl(45 90% 60% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "liga" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-golden {
+    background: var(--gradient-golden);
+  }
+
+  .gradient-celestial {
+    background: var(--gradient-celestial);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-medium {
+    box-shadow: var(--shadow-medium);
+  }
+
+  .shadow-golden {
+    box-shadow: var(--shadow-golden);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .hover-lift {
+    @apply transition-smooth hover:-translate-y-1 hover:shadow-medium;
+  }
+
+  .card-liturgic {
+    @apply rounded-xl bg-card border shadow-soft hover-lift;
+  }
+
+  .text-gradient-golden {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-golden);
+  }
+
+  .glow-golden {
+    @apply shadow-golden;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
