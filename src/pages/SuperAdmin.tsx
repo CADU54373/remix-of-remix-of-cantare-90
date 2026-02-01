@@ -10,10 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
-import { Church, Users, Shield, Plus, Trash2, UserCog, LogOut } from "lucide-react";
+import { Church, Users, Shield, Plus, Trash2, UserCog, LogOut, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import CreateUserDialog from "@/components/CreateUserDialog";
 
 interface Parish {
   id: string;
@@ -45,6 +47,7 @@ export default function SuperAdmin() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedRole, setSelectedRole] = useState<'admin' | 'priest' | 'user'>('user');
   const [selectedParish, setSelectedParish] = useState<string>("");
+  const [expandedParishes, setExpandedParishes] = useState<Set<string>>(new Set());
 
   // Buscar paróquias
   const { data: parishes, isLoading: loadingParishes } = useQuery({
@@ -179,6 +182,24 @@ export default function SuperAdmin() {
     return <Badge variant={variant}>{label}</Badge>;
   };
 
+  const getUserCountForParish = (parishId: string) => {
+    return users?.filter(u => u.parish_id === parishId).length || 0;
+  };
+
+  const getUsersForParish = (parishId: string) => {
+    return users?.filter(u => u.parish_id === parishId) || [];
+  };
+
+  const toggleParishExpanded = (parishId: string) => {
+    const newExpanded = new Set(expandedParishes);
+    if (newExpanded.has(parishId)) {
+      newExpanded.delete(parishId);
+    } else {
+      newExpanded.add(parishId);
+    }
+    setExpandedParishes(newExpanded);
+  };
+
   const handleLogout = async () => {
     await signOut();
     navigate('/');
@@ -260,47 +281,114 @@ export default function SuperAdmin() {
             {loadingParishes ? (
               <p className="text-muted-foreground">Carregando paróquias...</p>
             ) : parishes && parishes.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {parishes.map((parish) => (
-                  <Card key={parish.id}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium flex items-center gap-2">
-                        <Church className="h-5 w-5 text-primary" />
-                        {parish.name}
-                      </CardTitle>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
+              <div className="grid gap-4">
+                {parishes.map((parish) => {
+                  const userCount = getUserCountForParish(parish.id);
+                  const parishUsers = getUsersForParish(parish.id);
+                  const isExpanded = expandedParishes.has(parish.id);
+                  
+                  return (
+                    <Card key={parish.id}>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div className="flex items-center gap-3">
+                          <Church className="h-5 w-5 text-primary" />
+                          <div>
+                            <CardTitle className="text-lg font-medium">
+                              {parish.name}
+                            </CardTitle>
+                            <CardDescription>
+                              Cadastrada em {new Date(parish.created_at).toLocaleDateString('pt-BR')}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-sm">
+                            <Users className="h-3 w-3 mr-1" />
+                            {userCount} {userCount === 1 ? 'usuário' : 'usuários'}
+                          </Badge>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleParishExpanded(parish.id)}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir paróquia?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir a paróquia "{parish.name}"? 
-                              Esta ação não pode ser desfeita e removerá todos os dados associados.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => deleteParishMutation.mutate(parish.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription>
-                        Cadastrada em {new Date(parish.created_at).toLocaleDateString('pt-BR')}
-                      </CardDescription>
-                    </CardContent>
-                  </Card>
-                ))}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir paróquia?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir a paróquia "{parish.name}"? 
+                                  Esta ação não pode ser desfeita e removerá todos os dados associados.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteParishMutation.mutate(parish.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </CardHeader>
+                      
+                      {isExpanded && (
+                        <CardContent className="pt-0">
+                          <div className="border-t pt-4">
+                            <h4 className="text-sm font-medium mb-3">Usuários desta paróquia:</h4>
+                            {parishUsers.length > 0 ? (
+                              <div className="space-y-2">
+                                {parishUsers.map((user) => (
+                                  <div 
+                                    key={user.id} 
+                                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm">{user.email}</span>
+                                      {getRoleBadge(getUserRole(user.id))}
+                                      <Badge variant={user.approval_status === 'approved' ? 'default' : 'secondary'} className="text-xs">
+                                        {user.approval_status === 'approved' ? 'Aprovado' : 
+                                         user.approval_status === 'pending' ? 'Pendente' : 'Rejeitado'}
+                                      </Badge>
+                                    </div>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedUser(user);
+                                        setSelectedRole(getUserRole(user.id) as 'admin' | 'priest' | 'user');
+                                        setSelectedParish(user.parish_id || '');
+                                        setAssignRoleDialogOpen(true);
+                                      }}
+                                    >
+                                      <UserCog className="h-3 w-3 mr-1" />
+                                      Editar
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">Nenhum usuário nesta paróquia.</p>
+                            )}
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <Card className="p-6 text-center">
@@ -314,6 +402,7 @@ export default function SuperAdmin() {
           <TabsContent value="users" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Gerenciar Usuários</h2>
+              <CreateUserDialog parishes={parishes} />
             </div>
 
             {loadingUsers ? (

@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { VisitorParishProvider } from "@/contexts/VisitorParishContext";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Musicas from "./pages/Musicas";
@@ -14,6 +15,7 @@ import Liturgia from "./pages/Liturgia";
 import Auth from "./pages/Auth";
 import UserApprovals from "./pages/UserApprovals";
 import SuperAdmin from "./pages/SuperAdmin";
+import VisitorParishSelect from "./pages/VisitorParishSelect";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 
@@ -26,19 +28,22 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/super-admin" element={<SuperAdmin />} />
-            <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-            <Route path="/musicas" element={<Layout><Musicas /></Layout>} />
-            <Route path="/slides" element={<Layout><Slides /></Layout>} />
-            <Route path="/escalas" element={<Layout><Escalas /></Layout>} />
-            <Route path="/liturgia" element={<Layout><Liturgia /></Layout>} />
-            <Route path="/user-approvals" element={<Layout><UserApprovals /></Layout>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <VisitorParishProvider>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/visitor-select" element={<VisitorParishSelect />} />
+              <Route path="/super-admin" element={<SuperAdmin />} />
+              <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+              <Route path="/musicas" element={<Layout><Musicas /></Layout>} />
+              <Route path="/slides" element={<Layout><Slides /></Layout>} />
+              <Route path="/escalas" element={<Layout><Escalas /></Layout>} />
+              <Route path="/liturgia" element={<Layout><Liturgia /></Layout>} />
+              <Route path="/user-approvals" element={<Layout><UserApprovals /></Layout>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </VisitorParishProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

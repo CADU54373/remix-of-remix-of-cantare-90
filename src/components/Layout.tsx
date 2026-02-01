@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Music, Calendar, BookOpen, Church, LogIn, LogOut, UserCheck, Presentation } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Music, Calendar, BookOpen, Church, LogIn, LogOut, UserCheck, Presentation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVisitorParish } from "@/contexts/VisitorParishContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import logoImage from "@/assets/logo-cantare.png";
@@ -13,7 +14,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, isPriest, isSuperAdmin, signOut, userRole } = useAuth();
+  const { visitorParishName, clearVisitorParish, isVisitor } = useVisitorParish();
 
   // Mostrar "Aprovar Usuários" para padres e super admins
   const canApproveUsers = isPriest || isSuperAdmin;
@@ -32,6 +35,11 @@ const Layout = ({ children }: LayoutProps) => {
     if (isPriest) return { label: "Padre", variant: "secondary" as const };
     if (userRole === 'admin') return { label: "Admin", variant: "default" as const };
     return { label: "✓ Logado", variant: "default" as const };
+  };
+
+  const handleVisitorLeave = () => {
+    clearVisitorParish();
+    navigate("/");
   };
 
   return (
@@ -69,19 +77,42 @@ const Layout = ({ children }: LayoutProps) => {
               </>
             ) : (
               <>
-                <Badge variant="secondary" className="hidden sm:flex">
-                  👤 Visitante
-                </Badge>
-                <Link to="/auth">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    <span className="hidden sm:inline">Login</span>
-                  </Button>
-                </Link>
+                {isVisitor && visitorParishName ? (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="hidden sm:flex gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {visitorParishName}
+                    </Badge>
+                    <Badge variant="secondary" className="hidden sm:flex">
+                      👤 Visitante
+                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleVisitorLeave}
+                      className="gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span className="hidden sm:inline">Sair</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Badge variant="secondary" className="hidden sm:flex">
+                      👤 Visitante
+                    </Badge>
+                    <Link to="/auth">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <LogIn className="h-4 w-4" />
+                        <span className="hidden sm:inline">Login</span>
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </>
             )}
           </div>
