@@ -1,15 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Church, Loader2, CheckCircle, Clock } from "lucide-react";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-church-music.jpg";
+
+interface Parish {
+  id: string;
+  name: string;
+}
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Email inválido" }),
@@ -24,6 +32,20 @@ const Auth = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [selectedParish, setSelectedParish] = useState("");
+
+  // Buscar paróquias disponíveis
+  const { data: parishes, isLoading: loadingParishes } = useQuery({
+    queryKey: ['parishes-auth'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('parishes')
+        .select('id, name')
+        .order('name');
+      if (error) throw error;
+      return data as Parish[];
+    },
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +81,20 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!selectedParish) {
+      toast({
+        variant: "destructive",
+        title: "Paróquia obrigatória",
+        description: "Por favor, selecione a paróquia a qual você pertence.",
+      });
+      return;
+    }
+    
     try {
       const validated = authSchema.parse({ email: signupEmail, password: signupPassword });
       setIsLoading(true);
       
-      const { error } = await signUp(validated.email, validated.password);
+      const { error } = await signUp(validated.email, validated.password, selectedParish);
       
       if (error) {
         toast({
@@ -77,6 +108,7 @@ const Auth = () => {
         setShowPendingMessage(true);
         setSignupEmail("");
         setSignupPassword("");
+        setSelectedParish("");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -125,7 +157,7 @@ const Auth = () => {
                 <AlertTitle>Cadastro realizado com sucesso!</AlertTitle>
                 <AlertDescription className="space-y-2">
                   <p>
-                    Sua conta foi criada e está <strong>aguardando aprovação</strong> de um administrador.
+                    Sua conta foi criada e está <strong>aguardando aprovação</strong> do padre responsável pela sua paróquia.
                   </p>
                   <p className="text-sm">
                     Você receberá acesso em breve. Obrigado pela paciência!
@@ -192,7 +224,7 @@ const Auth = () => {
                     <Alert className="mb-4">
                       <Clock className="h-4 w-4" />
                       <AlertDescription className="text-sm">
-                        Após criar sua conta, você precisará aguardar a aprovação de um administrador para acessar o sistema.
+                        Após criar sua conta, você precisará aguardar a aprovação do padre da sua paróquia para acessar o sistema.
                       </AlertDescription>
                     </Alert>
                     <div className="space-y-2">
@@ -217,10 +249,25 @@ const Auth = () => {
                         required
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="parish">Qual paróquia você pertence?</Label>
+                      <Select value={selectedParish} onValueChange={setSelectedParish}>
+                        <SelectTrigger id="parish">
+                          <SelectValue placeholder={loadingParishes ? "Carregando..." : "Selecione sua paróquia"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {parishes?.map((parish) => (
+                            <SelectItem key={parish.id} value={parish.id}>
+                              {parish.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button 
                       type="submit" 
                       className="w-full gradient-primary"
-                      disabled={isLoading}
+                      disabled={isLoading || loadingParishes}
                     >
                       {isLoading ? (
                         <>

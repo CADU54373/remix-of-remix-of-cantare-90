@@ -4,13 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
+type UserRole = 'admin' | 'user' | 'super_admin' | 'priest';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   isAdmin: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  isSuperAdmin: boolean;
+  isPriest: boolean;
+  userRole: UserRole | null;
+  signUp: (email: string, password: string, parishId: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -22,7 +27,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isPriest, setIsPriest] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const navigate = useNavigate();
+
+  const checkUserRole = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (data) {
+      const role = data.role as UserRole;
+      setUserRole(role);
+      setIsAdmin(role === 'admin');
+      setIsSuperAdmin(role === 'super_admin');
+      setIsPriest(role === 'priest');
+      return role;
+    }
+    setUserRole(null);
+    setIsAdmin(false);
+    setIsSuperAdmin(false);
+    setIsPriest(false);
+    return null;
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -32,21 +62,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         setIsLoading(false);
         
-        // Check if user is admin
+        // Check user role
         if (session?.user) {
           setTimeout(() => {
-            supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .eq('role', 'admin')
-              .maybeSingle()
-              .then(({ data }) => {
-                setIsAdmin(!!data);
-              });
+            checkUserRole(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsSuperAdmin(false);
+          setIsPriest(false);
+          setUserRole(null);
         }
       }
     );
@@ -57,27 +82,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       setIsLoading(false);
       
-      // Check if user is admin
+      // Check user role
       if (session?.user) {
-        supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .eq('role', 'admin')
-          .maybeSingle()
-          .then(({ data }) => {
-            setIsAdmin(!!data);
-          });
+        checkUserRole(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, parishId: string) => {
     const redirectUrl = `${window.location.origin}/dashboard`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -85,10 +102,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    if (!error) {
+    if (!error && data.user) {
+      // Atualizar o perfil com a paróquia selecionada
+      await supabase
+        .from('user_profiles')
+        .update({ parish_id: parishId })
+        .eq('id', data.user.id);
+      
       toast({
         title: "Cadastro realizado!",
-        description: "Você já pode fazer login.",
+        description: "Aguarde a aprovação do padre da sua paróquia.",
       });
     }
 
@@ -114,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await supabase.auth.signOut();
       return { 
         error: { 
-          message: 'Sua conta está aguardando aprovação. Você receberá acesso assim que um administrador aprovar seu cadastro.' 
+          message: 'Sua conta está aguardando aprovação. Você receberá acesso assim que o padre da sua paróquia aprovar seu cadastro.' 
         } 
       };
     }
@@ -123,22 +146,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await supabase.auth.signOut();
       return { 
         error: { 
-          message: 'Sua conta foi rejeitada. Entre em contato com o administrador para mais informações.' 
+          message: 'Sua conta foi rejeitada. Entre em contato com o padre da sua paróquia para mais informações.' 
         } 
       };
     }
+
+    // Check user role for redirection
+    const role = await checkUserRole(data.user.id);
 
     toast({
       title: "Login realizado!",
       description: "Bem-vindo de volta.",
     });
-    navigate("/dashboard");
+
+    // Redirect based on role
+    if (role === 'super_admin') {
+      navigate("/super-admin");
+    } else {
+      navigate("/dashboard");
+    }
 
     return { error: null };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setIsAdmin(false);
+    setIsSuperAdmin(false);
+    setIsPriest(false);
+    setUserRole(null);
     toast({
       title: "Logout realizado",
       description: "Até breve!",
@@ -155,6 +191,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated: !!user,
         isLoading,
         isAdmin,
+        isSuperAdmin,
+        isPriest,
+        userRole,
         signUp,
         signIn,
         signOut,
