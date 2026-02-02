@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/collapsible";
 
 const Liturgia = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, parishId } = useAuth();
   const [searchParams] = useSearchParams();
   const dateFromUrl = searchParams.get('date');
   
@@ -190,7 +190,7 @@ const Liturgia = () => {
       };
 
       // Save the melody first to get its ID
-      const melodyId = await addPsalmMelody(melody);
+      const melodyId = await addPsalmMelody(melody, parishId || undefined);
       
       // Upload pending audios
       for (const audio of pendingAudios) {
@@ -199,7 +199,7 @@ const Liturgia = () => {
           title: audio.title,
           audioUrl: '', // Will be set by the function
           createdBy: 'Usuário Atual',
-        }, audio.file);
+        }, audio.file, parishId || undefined);
       }
 
       await refreshData();

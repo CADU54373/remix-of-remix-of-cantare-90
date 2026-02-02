@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Musicas = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, parishId } = useAuth();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [files, setFiles] = useState<MusicFile[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -114,7 +114,7 @@ const Musicas = () => {
       await addFolder({
         name: newFolderName,
         parentId: currentFolderId,
-      });
+      }, parishId || undefined);
 
       await refreshData();
       setNewFolderName("");
@@ -190,7 +190,7 @@ const Musicas = () => {
         folderId: currentFolderId,
         fileData: '', // Será preenchido pelo Supabase
         uploadedBy: 'Usuário Atual',
-      }, selectedFile);
+      }, selectedFile, parishId || undefined);
 
       // Adicionar links de vídeo se houver
       if (videoLinks.length > 0) {
@@ -201,7 +201,7 @@ const Musicas = () => {
               title: link.title,
               videoUrl: link.videoUrl,
               createdBy: 'Usuário Atual',
-            })
+            }, parishId || undefined)
           )
         );
       }
@@ -215,7 +215,7 @@ const Musicas = () => {
               title: audio.title,
               audioUrl: '', // Será preenchido pelo storage
               createdBy: 'Usuário Atual',
-            }, audio.file)
+            }, audio.file, parishId || undefined)
           )
         );
       }
@@ -277,7 +277,7 @@ const Musicas = () => {
         title,
         videoUrl,
         createdBy: 'Usuário Atual',
-      });
+      }, parishId || undefined);
       await refreshData();
       toast.success("Link adicionado!");
     } catch (error) {
@@ -306,7 +306,7 @@ const Musicas = () => {
         title,
         audioUrl: '',
         createdBy: 'Usuário Atual',
-      }, file);
+      }, file, parishId || undefined);
       await refreshData();
       toast.success("Áudio adicionado!");
     } catch (error) {
