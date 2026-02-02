@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
 import { Church, Users, Shield, Plus, Trash2, UserCog, LogOut, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,6 +156,38 @@ export default function SuperAdmin() {
     onError: (error) => {
       console.error('Error assigning role:', error);
       toast({ title: "Erro", description: "Não foi possível atualizar o usuário.", variant: "destructive" });
+    },
+  });
+
+  // Deletar usuário
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
+      queryClient.invalidateQueries({ queryKey: ['user-roles'] });
+      toast({ title: "Usuário excluído!", description: "O usuário foi removido com sucesso." });
+    },
+    onError: (error) => {
+      console.error('Error deleting user:', error);
+      toast({ title: "Erro", description: error.message || "Não foi possível excluir o usuário.", variant: "destructive" });
     },
   });
 
@@ -423,20 +454,21 @@ export default function SuperAdmin() {
                           </Badge>
                         </div>
                       </div>
-                      <Dialog open={assignRoleDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
-                        setAssignRoleDialogOpen(open);
-                        if (open) {
-                          setSelectedUser(user);
-                          setSelectedRole(getUserRole(user.id) as 'admin' | 'priest' | 'user');
-                          setSelectedParish(user.parish_id || '');
-                        }
-                      }}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <UserCog className="h-4 w-4 mr-2" />
-                            Gerenciar
-                          </Button>
-                        </DialogTrigger>
+                      <div className="flex gap-2">
+                        <Dialog open={assignRoleDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
+                          setAssignRoleDialogOpen(open);
+                          if (open) {
+                            setSelectedUser(user);
+                            setSelectedRole(getUserRole(user.id) as 'admin' | 'priest' | 'user');
+                            setSelectedParish(user.parish_id || '');
+                          }
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <UserCog className="h-4 w-4 mr-2" />
+                              Gerenciar
+                            </Button>
+                          </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Gerenciar Usuário</DialogTitle>
@@ -488,6 +520,33 @@ export default function SuperAdmin() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir o usuário "{user.email}"? 
+                              Esta ação não pode ser desfeita e removerá todos os dados associados.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => deleteUserMutation.mutate(user.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      </div>
                     </CardHeader>
                   </Card>
                 ))}
