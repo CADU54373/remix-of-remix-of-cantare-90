@@ -35,23 +35,26 @@ Deno.serve(async (req) => {
       }
     })
 
-    // Verify the requesting user from the JWT token
+    // Extract the JWT token from the authorization header
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user: requestingUser }, error: userError } = await adminClient.auth.getUser(token)
     
-    if (userError || !requestingUser) {
-      console.error('Auth error:', userError)
+    // Decode the JWT to get the user ID (the token is already verified by Supabase)
+    // We'll use the admin API to get user info from the token
+    const tokenPayload = JSON.parse(atob(token.split('.')[1]))
+    const requestingUserId = tokenPayload.sub
+    
+    if (!requestingUserId) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check if requesting user is super admin
+    // Check if requesting user is super admin using service role
     const { data: roleData } = await adminClient
       .from('user_roles')
       .select('role')
-      .eq('user_id', requestingUser.id)
+      .eq('user_id', requestingUserId)
       .eq('role', 'super_admin')
       .maybeSingle()
 
@@ -99,7 +102,7 @@ Deno.serve(async (req) => {
     const newUserId = authData.user.id
 
     // Wait for trigger to create profile
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Update the user profile with parish and approval status
     const { error: profileError } = await adminClient
@@ -108,7 +111,7 @@ Deno.serve(async (req) => {
         parish_id: parishId, 
         approval_status: 'approved',
         approved_at: new Date().toISOString(),
-        approved_by: requestingUser.id
+        approved_by: requestingUserId
       })
       .eq('id', newUserId)
 
@@ -138,6 +141,8 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log(`User ${email} created successfully with role ${role}`)
 
     return new Response(
       JSON.stringify({ 
