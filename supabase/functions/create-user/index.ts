@@ -16,27 +16,38 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Create client with user's token to verify they're a super admin
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabaseAnonKey = Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    // Verify the requesting user is a super admin
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing env vars:', { supabaseUrl: !!supabaseUrl, supabaseServiceKey: !!supabaseServiceKey })
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Create admin client with service role key
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     })
+
+    // Verify the requesting user from the JWT token
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user: requestingUser }, error: userError } = await adminClient.auth.getUser(token)
     
-    const { data: { user: requestingUser }, error: userError } = await userClient.auth.getUser()
     if (userError || !requestingUser) {
+      console.error('Auth error:', userError)
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check if requesting user is super admin using service role
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
-    
+    // Check if requesting user is super admin
     const { data: roleData } = await adminClient
       .from('user_roles')
       .select('role')
@@ -74,7 +85,7 @@ Deno.serve(async (req) => {
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
-      email_confirm: true // Auto-confirm the email
+      email_confirm: true
     })
 
     if (authError) {
@@ -103,7 +114,6 @@ Deno.serve(async (req) => {
 
     if (profileError) {
       console.error('Error updating profile:', profileError)
-      // Cleanup: delete the created user
       await adminClient.auth.admin.deleteUser(newUserId)
       return new Response(
         JSON.stringify({ error: 'Failed to update user profile: ' + profileError.message }),
@@ -141,7 +151,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown') }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
