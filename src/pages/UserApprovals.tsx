@@ -73,12 +73,17 @@ export default function UserApprovals() {
   });
 
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ['user-profiles', selectedStatus, searchQuery, userProfile?.parish_id],
+    queryKey: ['user-profiles', selectedStatus, searchQuery, userProfile?.parish_id, isSuperAdmin],
     queryFn: async () => {
       let query = supabase
         .from('user_profiles')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Filtrar por paróquia do padre (não super admin)
+      if (isPriest && !isSuperAdmin && userProfile?.parish_id) {
+        query = query.eq('parish_id', userProfile.parish_id);
+      }
 
       if (selectedStatus !== 'all') {
         query = query.eq('approval_status', selectedStatus);
@@ -92,7 +97,7 @@ export default function UserApprovals() {
       if (error) throw error;
       return data as UserProfile[];
     },
-    enabled: isPriest || isSuperAdmin,
+    enabled: (isPriest || isSuperAdmin) && (isSuperAdmin || !!userProfile?.parish_id),
   });
 
   const approveMutation = useMutation({

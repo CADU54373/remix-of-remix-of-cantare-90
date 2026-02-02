@@ -98,12 +98,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl
+        emailRedirectTo: redirectUrl,
+        data: {
+          parish_id: parishId
+        }
       }
     });
 
     if (!error && data.user) {
-      // Atualizar o perfil com a paróquia selecionada
+      // Atualizar o perfil com a paróquia selecionada (backup caso o trigger não capture)
       await supabase
         .from('user_profiles')
         .update({ parish_id: parishId })
