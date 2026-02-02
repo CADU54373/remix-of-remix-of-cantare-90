@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Slides = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, parishId } = useAuth();
   const [folders, setFolders] = useState<SlideFolder[]>([]);
   const [files, setFiles] = useState<SlideFile[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -88,7 +88,7 @@ const Slides = () => {
       await addSlideFolder({
         name: newFolderName,
         parentId: currentFolderId,
-      });
+      }, parishId || undefined);
 
       await refreshData();
       setNewFolderName("");
@@ -172,7 +172,7 @@ const Slides = () => {
         name: selectedFile.name,
         folderId: currentFolderId,
         uploadedBy: 'Usuário Atual',
-      }, selectedFile);
+      }, selectedFile, parishId || undefined);
 
       await refreshData();
       setSelectedFile(null);

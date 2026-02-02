@@ -44,8 +44,10 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Escalas = () => {
+  const { parishId } = useAuth();
   const [viewMode, setViewMode] = useState<'musicos' | 'salmistas'>('musicos');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -256,7 +258,7 @@ const Escalas = () => {
           await updateRecurringSchedule({ ...scheduleData, id: editingRecurring.id, createdAt: editingRecurring.createdAt });
           toast.success("Escala fixa atualizada!");
         } else {
-          await addRecurringSchedule(scheduleData);
+          await addRecurringSchedule(scheduleData, parishId || undefined);
           toast.success("Escala fixa criada!");
         }
       } else if (dialogMode === 'create-override' || dialogMode === 'edit-override') {
@@ -290,7 +292,7 @@ const Escalas = () => {
           await updateScheduleOverride({ ...overrideData, id: editingOverride.id, createdAt: editingOverride.createdAt });
           toast.success("Substituição atualizada!");
         } else {
-          await addScheduleOverride(overrideData);
+          await addScheduleOverride(overrideData, parishId || undefined);
           toast.success("Substituição criada!");
         }
       }
@@ -416,7 +418,7 @@ const Escalas = () => {
           await updateRecurringSalmistSchedule({ ...scheduleData, id: editingRecurringSalmist.id, createdAt: editingRecurringSalmist.createdAt });
           toast.success("Escala fixa de salmista atualizada!");
         } else {
-          await addRecurringSalmistSchedule(scheduleData);
+          await addRecurringSalmistSchedule(scheduleData, parishId || undefined);
           toast.success("Escala fixa de salmista criada!");
         }
       } else if (dialogMode === 'create-override' || dialogMode === 'edit-override') {
@@ -449,7 +451,7 @@ const Escalas = () => {
           await updateSalmistScheduleOverride({ ...overrideData, id: editingOverrideSalmist.id, createdAt: editingOverrideSalmist.createdAt });
           toast.success("Substituição de salmista atualizada!");
         } else {
-          await addSalmistScheduleOverride(overrideData);
+          await addSalmistScheduleOverride(overrideData, parishId || undefined);
           toast.success("Substituição de salmista criada!");
         }
       }

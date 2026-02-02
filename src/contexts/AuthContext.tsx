@@ -15,6 +15,7 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   isPriest: boolean;
   userRole: UserRole | null;
+  parishId: string | null;
   signUp: (email: string, password: string, parishId: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isPriest, setIsPriest] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [parishId, setParishId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const checkUserRole = async (userId: string) => {
@@ -54,6 +56,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return null;
   };
 
+  const fetchUserParish = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('parish_id')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (data?.parish_id) {
+      setParishId(data.parish_id);
+    } else {
+      setParishId(null);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -62,16 +78,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         setIsLoading(false);
         
-        // Check user role
+        // Check user role and parish
         if (session?.user) {
           setTimeout(() => {
             checkUserRole(session.user.id);
+            fetchUserParish(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
           setIsSuperAdmin(false);
           setIsPriest(false);
           setUserRole(null);
+          setParishId(null);
         }
       }
     );
@@ -82,9 +100,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       setIsLoading(false);
       
-      // Check user role
+      // Check user role and parish
       if (session?.user) {
         checkUserRole(session.user.id);
+        fetchUserParish(session.user.id);
       }
     });
 
@@ -178,6 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsSuperAdmin(false);
     setIsPriest(false);
     setUserRole(null);
+    setParishId(null);
     toast({
       title: "Logout realizado",
       description: "Até breve!",
@@ -197,6 +217,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isSuperAdmin,
         isPriest,
         userRole,
+        parishId,
         signUp,
         signIn,
         signOut,

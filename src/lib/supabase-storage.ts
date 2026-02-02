@@ -45,12 +45,13 @@ export const getFolders = async (): Promise<Folder[]> => {
   }));
 };
 
-export const addFolder = async (folder: Omit<Folder, 'id' | 'createdAt'>): Promise<Folder> => {
+export const addFolder = async (folder: Omit<Folder, 'id' | 'createdAt'>, parishId?: string): Promise<Folder> => {
   const { data, error } = await supabase
     .from('folders')
     .insert({
       name: folder.name,
       parent_id: folder.parentId,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -118,7 +119,8 @@ export const getMusicFiles = async (): Promise<MusicFile[]> => {
 
 export const addMusicFile = async (
   file: Omit<MusicFile, 'id' | 'uploadedAt'>,
-  pdfFile: File
+  pdfFile: File,
+  parishId?: string
 ): Promise<MusicFile> => {
   const fileId = crypto.randomUUID();
   const fileName = `${fileId}_${sanitizeFileName(pdfFile.name)}`;
@@ -147,6 +149,7 @@ export const addMusicFile = async (
       folder_id: file.folderId,
       file_url: publicUrl,
       uploaded_by: file.uploadedBy,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -213,7 +216,8 @@ export const getMusicVideoLinks = async (musicFileId: string): Promise<MusicVide
 };
 
 export const addMusicVideoLink = async (
-  link: Omit<MusicVideoLink, 'id' | 'createdAt'>
+  link: Omit<MusicVideoLink, 'id' | 'createdAt'>,
+  parishId?: string
 ): Promise<MusicVideoLink> => {
   const { data, error } = await supabase
     .from('music_video_links')
@@ -222,6 +226,7 @@ export const addMusicVideoLink = async (
       title: link.title,
       video_url: link.videoUrl,
       created_by: link.createdBy,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -271,7 +276,8 @@ export const getMusicAudioLinks = async (musicFileId: string): Promise<MusicAudi
 
 export const addMusicAudioLink = async (
   link: Omit<MusicAudioLink, 'id' | 'createdAt'>,
-  audioFile: File
+  audioFile: File,
+  parishId?: string
 ): Promise<MusicAudioLink> => {
   const fileId = crypto.randomUUID();
   const fileName = `${fileId}_${sanitizeFileName(audioFile.name)}`;
@@ -300,6 +306,7 @@ export const addMusicAudioLink = async (
       audio_url: publicUrl,
       duration_seconds: link.durationSeconds,
       created_by: link.createdBy,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -371,7 +378,7 @@ export const getRecurringSchedules = async (): Promise<RecurringSchedule[]> => {
   }));
 };
 
-export const addRecurringSchedule = async (schedule: Omit<RecurringSchedule, 'id' | 'createdAt'>): Promise<RecurringSchedule> => {
+export const addRecurringSchedule = async (schedule: Omit<RecurringSchedule, 'id' | 'createdAt'>, parishId?: string): Promise<RecurringSchedule> => {
   const { data, error } = await supabase
     .from('recurring_schedules')
     .insert({
@@ -385,6 +392,7 @@ export const addRecurringSchedule = async (schedule: Omit<RecurringSchedule, 'id
       is_active: schedule.isActive,
       start_month: schedule.startMonth,
       created_by: schedule.createdBy,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -466,7 +474,7 @@ export const getScheduleOverrides = async (month?: string): Promise<ScheduleOver
   }));
 };
 
-export const addScheduleOverride = async (override: Omit<ScheduleOverride, 'id' | 'createdAt'>): Promise<ScheduleOverride> => {
+export const addScheduleOverride = async (override: Omit<ScheduleOverride, 'id' | 'createdAt'>, parishId?: string): Promise<ScheduleOverride> => {
   const { data, error } = await supabase
     .from('schedule_overrides')
     .insert({
@@ -478,6 +486,7 @@ export const addScheduleOverride = async (override: Omit<ScheduleOverride, 'id' 
       community: override.community,
       musicians: override.musicians as any,
       observations: override.observations,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -549,7 +558,7 @@ export const getRecurringSalmistSchedules = async (): Promise<RecurringSalmistSc
   }));
 };
 
-export const addRecurringSalmistSchedule = async (schedule: Omit<RecurringSalmistSchedule, 'id' | 'createdAt'>): Promise<RecurringSalmistSchedule> => {
+export const addRecurringSalmistSchedule = async (schedule: Omit<RecurringSalmistSchedule, 'id' | 'createdAt'>, parishId?: string): Promise<RecurringSalmistSchedule> => {
   const { data, error } = await supabase
     .from('recurring_salmist_schedules')
     .insert({
@@ -562,6 +571,7 @@ export const addRecurringSalmistSchedule = async (schedule: Omit<RecurringSalmis
       is_active: schedule.isActive,
       start_month: schedule.startMonth,
       created_by: schedule.createdBy,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -640,7 +650,7 @@ export const getSalmistScheduleOverrides = async (month?: string): Promise<Salmi
   }));
 };
 
-export const addSalmistScheduleOverride = async (override: Omit<SalmistScheduleOverride, 'id' | 'createdAt'>): Promise<SalmistScheduleOverride> => {
+export const addSalmistScheduleOverride = async (override: Omit<SalmistScheduleOverride, 'id' | 'createdAt'>, parishId?: string): Promise<SalmistScheduleOverride> => {
   const { data, error } = await supabase
     .from('salmist_schedule_overrides')
     .insert({
@@ -651,6 +661,7 @@ export const addSalmistScheduleOverride = async (override: Omit<SalmistScheduleO
       community: override.community,
       psalmist: override.psalmist,
       observations: override.observations,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -726,7 +737,7 @@ export const getPsalmMelodies = async (): Promise<PsalmMelody[]> => {
   return melodiesWithAudio;
 };
 
-export const addPsalmMelody = async (melody: PsalmMelody): Promise<string> => {
+export const addPsalmMelody = async (melody: PsalmMelody, parishId?: string): Promise<string> => {
   const { data, error } = await supabase
     .from('psalm_melodies')
     .upsert([{
@@ -737,6 +748,7 @@ export const addPsalmMelody = async (melody: PsalmMelody): Promise<string> => {
       youtube_links: melody.youtubeLinks as any,
       added_by: melody.addedBy,
       added_at: melody.addedAt || new Date().toISOString(),
+      parish_id: parishId,
     }], {
       onConflict: 'date,psalm_index',
     })
@@ -771,7 +783,8 @@ export const getPsalmMelodyAudioLinks = async (psalmMelodyId: string): Promise<P
 
 export const addPsalmMelodyAudioLink = async (
   link: Omit<PsalmMelodyAudioLink, 'id' | 'createdAt'>,
-  audioFile: File
+  audioFile: File,
+  parishId?: string
 ): Promise<PsalmMelodyAudioLink> => {
   const fileId = crypto.randomUUID();
   const fileName = `${fileId}_${sanitizeFileName(audioFile.name)}`;
@@ -800,6 +813,7 @@ export const addPsalmMelodyAudioLink = async (
       audio_url: publicUrl,
       duration_seconds: link.durationSeconds,
       created_by: link.createdBy,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -939,13 +953,14 @@ export const getSlideFolders = async (): Promise<SlideFolder[]> => {
   }));
 };
 
-export const addSlideFolder = async (folder: Omit<SlideFolder, 'id' | 'createdAt'>): Promise<SlideFolder> => {
+export const addSlideFolder = async (folder: Omit<SlideFolder, 'id' | 'createdAt'>, parishId?: string): Promise<SlideFolder> => {
   const { data, error } = await supabase
     .from('slide_folders')
     .insert({
       name: folder.name,
       parent_id: folder.parentId,
       created_by: folder.createdBy,
+      parish_id: parishId,
     })
     .select()
     .single();
@@ -1001,7 +1016,8 @@ export const getSlideFiles = async (): Promise<SlideFile[]> => {
 
 export const addSlideFile = async (
   file: Omit<SlideFile, 'id' | 'uploadedAt' | 'fileUrl'>, 
-  slideFile: File
+  slideFile: File,
+  parishId?: string
 ): Promise<SlideFile> => {
   // Sanitizar nome do arquivo
   const sanitizedName = sanitizeFileName(slideFile.name);
@@ -1029,6 +1045,7 @@ export const addSlideFile = async (
       name: file.name,
       file_url: publicUrlData.publicUrl,
       uploaded_by: file.uploadedBy,
+      parish_id: parishId,
     })
     .select()
     .single();
