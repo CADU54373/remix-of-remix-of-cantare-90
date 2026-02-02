@@ -28,45 +28,31 @@ const CreateUserDialog = ({ parishes }: CreateUserDialogProps) => {
 
   const createUserMutation = useMutation({
     mutationFn: async () => {
-      // 1. Create the user via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Você precisa estar autenticado");
+
+      // Call the edge function to create user
+      const response = await supabase.functions.invoke('create-user', {
+        body: {
+          email,
+          password,
+          parishId: selectedParish,
+          role: selectedRole
+        }
       });
-      
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Falha ao criar usuário");
 
-      const userId = authData.user.id;
+      if (response.error) {
+        throw new Error(response.error.message || "Erro ao criar usuário");
+      }
 
-      // 2. Wait a bit for the trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
 
-      // 3. Update the user profile with parish and approval status
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .update({ 
-          parish_id: selectedParish, 
-          approval_status: 'approved',
-          approved_at: new Date().toISOString()
-        })
-        .eq('id', userId);
-      
-      if (profileError) throw profileError;
-
-      // 4. Assign the role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role: selectedRole });
-      
-      if (roleError) throw roleError;
-
-      return userId;
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['all-users'] });
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
       queryClient.invalidateQueries({ queryKey: ['parish-user-counts'] });
