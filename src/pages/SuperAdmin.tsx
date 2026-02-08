@@ -240,22 +240,22 @@ export default function SuperAdmin() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold">Painel Super Admin</h1>
-              <p className="text-sm text-muted-foreground">Gerenciamento do Sistema</p>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-bold truncate">Painel Super Admin</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Gerenciamento do Sistema</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
+          <Button variant="outline" size="sm" onClick={handleLogout} className="flex-shrink-0">
+            <LogOut className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Sair</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto p-6 space-y-6">
+      <main className="container mx-auto p-4 sm:p-6 space-y-6">
         <Tabs defaultValue="parishes">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="parishes" className="gap-2">
@@ -320,9 +320,9 @@ export default function SuperAdmin() {
                   
                   return (
                     <Card key={parish.id}>
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <div className="flex items-center gap-3">
-                          <Church className="h-5 w-5 text-primary" />
+                       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 pb-2">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <Church className="h-5 w-5 text-primary flex-shrink-0" />
                           <div>
                             <CardTitle className="text-lg font-medium">
                               {parish.name}
@@ -383,12 +383,12 @@ export default function SuperAdmin() {
                             {parishUsers.length > 0 ? (
                               <div className="space-y-2">
                                 {parishUsers.map((user) => (
-                                  <div 
+                                   <div 
                                     key={user.id} 
-                                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg"
                                   >
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm">{user.email}</span>
+                                    <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                      <span className="text-sm truncate">{user.email}</span>
                                       {getRoleBadge(getUserRole(user.id))}
                                       <Badge variant={user.approval_status === 'approved' ? 'default' : 'secondary'} className="text-xs">
                                         {user.approval_status === 'approved' ? 'Aprovado' : 

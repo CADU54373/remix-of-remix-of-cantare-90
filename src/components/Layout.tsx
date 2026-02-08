@@ -173,7 +173,7 @@ const Layout = ({ children }: LayoutProps) => {
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 p-6 pb-24 md:pb-6">
+        <main className="flex-1 p-3 sm:p-6 pb-20 md:pb-6">
           {children}
         </main>
       </div>
