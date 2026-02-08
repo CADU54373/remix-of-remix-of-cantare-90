@@ -308,37 +308,40 @@ const Liturgia = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Liturgia Diária</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-4xl font-bold mb-2">Liturgia Diária</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Leituras e salmos da celebração
           </p>
         </div>
         <Button
           variant="outline"
           onClick={() => setHistoryDialogOpen(true)}
+          className="w-full sm:w-auto"
         >
           Ver Histórico
         </Button>
       </div>
 
       {/* Seletor de Data */}
-      <Card className="p-4">
-        <div className="flex gap-4 items-center flex-wrap">
-          <CalendarIcon className="w-5 h-5 text-primary" />
-          <Label>Data:</Label>
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-auto"
-          />
-          <span className="text-sm text-muted-foreground">
+      <Card className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-5 h-5 text-primary flex-shrink-0" />
+            <Label className="whitespace-nowrap">Data:</Label>
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-auto"
+            />
+          </div>
+          <span className="text-xs sm:text-sm text-muted-foreground">
             {format(parseLocalDate(selectedDate), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </span>
           {liturgy && (
-            <span className="text-sm font-medium text-primary ml-auto">
+            <span className="text-xs sm:text-sm font-medium text-primary sm:ml-auto">
               {liturgy.liturgia}
             </span>
           )}

@@ -584,19 +584,20 @@ const Escalas = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Escalas</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-4xl font-bold mb-2">Escalas</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Gerencie escalas fixas e substituições mensais
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex gap-1 bg-muted p-1 rounded-lg">
             <Button
               variant={viewMode === 'musicos' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('musicos')}
+              className="flex-1 sm:flex-initial"
             >
               <Users className="w-4 h-4 mr-2" />
               Músicos
@@ -605,6 +606,7 @@ const Escalas = () => {
               variant={viewMode === 'salmistas' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('salmistas')}
+              className="flex-1 sm:flex-initial"
             >
               <Music className="w-4 h-4 mr-2" />
               Salmistas
@@ -612,6 +614,7 @@ const Escalas = () => {
           </div>
           <Button 
             onClick={() => viewMode === 'musicos' ? handleOpenDialog('new') : handleOpenSalmistDialog('new')}
+            className="w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nova Escala Fixa
@@ -620,12 +623,12 @@ const Escalas = () => {
       </div>
 
       {/* Navegação de Mês */}
-      <Card className="p-4">
+      <Card className="p-3 sm:p-4">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <h2 className="text-2xl font-semibold capitalize">{getMonthName()}</h2>
+          <h2 className="text-lg sm:text-2xl font-semibold capitalize">{getMonthName()}</h2>
           <Button variant="outline" size="icon" onClick={handleNextMonth}>
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -634,10 +637,10 @@ const Escalas = () => {
 
       {/* Filtro de Comunidade */}
       <Card className="p-4">
-        <div className="flex items-center gap-4">
-          <Label className="text-sm font-medium">Filtrar por comunidade:</Label>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <Label className="text-sm font-medium whitespace-nowrap">Filtrar por comunidade:</Label>
           <Select value={communityFilter} onValueChange={setCommunityFilter}>
-            <SelectTrigger className="w-[250px]">
+            <SelectTrigger className="w-full sm:w-[250px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -968,7 +971,7 @@ const Escalas = () => {
 
       {/* Dialog para Músicos */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {dialogMode === 'new' && 'Nova Escala Fixa de Músicos'}
@@ -1172,7 +1175,7 @@ const Escalas = () => {
 
       {/* Dialog para Salmistas */}
       <Dialog open={salmistDialogOpen} onOpenChange={setSalmistDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {dialogMode === 'new' && 'Nova Escala Fixa de Salmista'}

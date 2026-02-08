@@ -75,13 +75,13 @@ const Dashboard = () => {
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
       <div>
-        <h1 className="text-4xl font-bold mb-2">Bem-vindo ao CANTARE</h1>
-        <p className="text-muted-foreground text-lg">
+        <h1 className="text-2xl md:text-4xl font-bold mb-2">Bem-vindo ao CANTARE</h1>
+        <p className="text-muted-foreground text-sm md:text-lg">
           {format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </p>
       </div>
 
-      <div className="grid md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <Card className="hover-lift">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
