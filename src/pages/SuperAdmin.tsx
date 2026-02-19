@@ -44,7 +44,7 @@ export default function SuperAdmin() {
   const [newParishDialogOpen, setNewParishDialogOpen] = useState(false);
   const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'priest' | 'user'>('user');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'priest' | 'user' | 'super_admin'>('user');
   const [selectedParish, setSelectedParish] = useState<string>("");
   const [expandedParishes, setExpandedParishes] = useState<Set<string>>(new Set());
 
@@ -125,7 +125,7 @@ export default function SuperAdmin() {
 
   // Atribuir role e paróquia ao usuário
   const assignRoleMutation = useMutation({
-    mutationFn: async ({ userId, role, parishId }: { userId: string; role: 'admin' | 'priest' | 'user'; parishId: string }) => {
+    mutationFn: async ({ userId, role, parishId }: { userId: string; role: 'admin' | 'priest' | 'user' | 'super_admin'; parishId: string }) => {
       // Atualizar paróquia do usuário
       const { error: profileError } = await supabase
         .from('user_profiles')
@@ -400,7 +400,7 @@ export default function SuperAdmin() {
                                       size="sm"
                                       onClick={() => {
                                         setSelectedUser(user);
-                                        setSelectedRole(getUserRole(user.id) as 'admin' | 'priest' | 'user');
+                                        setSelectedRole(getUserRole(user.id) as 'admin' | 'priest' | 'user' | 'super_admin');
                                         setSelectedParish(user.parish_id || '');
                                         setAssignRoleDialogOpen(true);
                                       }}
@@ -459,7 +459,7 @@ export default function SuperAdmin() {
                           setAssignRoleDialogOpen(open);
                           if (open) {
                             setSelectedUser(user);
-                            setSelectedRole(getUserRole(user.id) as 'admin' | 'priest' | 'user');
+                            setSelectedRole(getUserRole(user.id) as 'admin' | 'priest' | 'user' | 'super_admin');
                             setSelectedParish(user.parish_id || '');
                           }
                         }}>
@@ -494,7 +494,7 @@ export default function SuperAdmin() {
                             </div>
                             <div className="space-y-2">
                               <Label>Role</Label>
-                              <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'admin' | 'priest' | 'user')}>
+                              <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'admin' | 'priest' | 'user' | 'super_admin')}>
                                 <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
@@ -502,6 +502,7 @@ export default function SuperAdmin() {
                                   <SelectItem value="user">Usuário</SelectItem>
                                   <SelectItem value="admin">Admin</SelectItem>
                                   <SelectItem value="priest">Padre</SelectItem>
+                                  <SelectItem value="super_admin">Super Admin</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
