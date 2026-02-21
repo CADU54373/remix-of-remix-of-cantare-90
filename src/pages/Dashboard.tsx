@@ -8,9 +8,14 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { fetchLiturgia } from "@/lib/liturgia-api";
+import { useAuth } from "@/contexts/AuthContext";
+import { useVisitorParish } from "@/contexts/VisitorParishContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, parishId } = useAuth();
+  const { visitorParishId, isVisitor } = useVisitorParish();
+  const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const [loading, setLoading] = useState(true);
   const [todayPsalm, setTodayPsalm] = useState<PsalmMelody | null>(null);
   const [liturgyColor, setLiturgyColor] = useState<string>("");
@@ -25,20 +30,21 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [effectiveParishId]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       
       const today = new Date().toISOString().split('T')[0];
+      const pid = effectiveParishId || undefined;
       
       const [files, folders, schedules, salmistSchedules, melodies, liturgy] = await Promise.all([
-        getMusicFiles(),
-        getFolders(),
-        getRecurringSchedules(),
-        getRecurringSalmistSchedules(),
-        getPsalmMelodies(),
+        getMusicFiles(pid),
+        getFolders(pid),
+        getRecurringSchedules(pid),
+        getRecurringSalmistSchedules(pid),
+        getPsalmMelodies(pid),
         fetchLiturgia(today).catch(() => null),
       ]);
 

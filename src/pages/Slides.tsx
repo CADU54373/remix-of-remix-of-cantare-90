@@ -16,10 +16,14 @@ import { Label } from "@/components/ui/label";
 import { FolderIcon, Presentation, Plus, Trash2, ChevronRight, Home, Upload, Lock, Edit, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVisitorParish } from "@/contexts/VisitorParishContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Slides = () => {
   const { isAuthenticated, parishId } = useAuth();
+  const { visitorParishId, isVisitor } = useVisitorParish();
+  const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
+  const isReadOnly = !isAuthenticated;
   const [folders, setFolders] = useState<SlideFolder[]>([]);
   const [files, setFiles] = useState<SlideFile[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -45,9 +49,10 @@ const Slides = () => {
 
   const refreshData = async () => {
     try {
+      const pid = effectiveParishId || undefined;
       const [foldersData, filesData] = await Promise.all([
-        getSlideFolders(),
-        getSlideFiles()
+        getSlideFolders(pid),
+        getSlideFiles(pid)
       ]);
       setFolders(foldersData);
       setFiles(filesData);
