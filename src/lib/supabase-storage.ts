@@ -29,11 +29,17 @@ const sanitizeFileName = (fileName: string): string => {
 
 // ========== FOLDERS ==========
 
-export const getFolders = async (): Promise<Folder[]> => {
-  const { data, error } = await supabase
+export const getFolders = async (filterParishId?: string): Promise<Folder[]> => {
+  let query = supabase
     .from('folders')
     .select('*')
     .order('name');
+  
+  if (filterParishId) {
+    query = query.eq('parish_id', filterParishId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   
@@ -86,11 +92,17 @@ export const deleteFolder = async (folderId: string): Promise<void> => {
 
 // ========== MUSIC FILES ==========
 
-export const getMusicFiles = async (): Promise<MusicFile[]> => {
-  const { data, error } = await supabase
+export const getMusicFiles = async (filterParishId?: string): Promise<MusicFile[]> => {
+  let query = supabase
     .from('music_files')
     .select('*')
     .order('uploaded_at', { ascending: false });
+  
+  if (filterParishId) {
+    query = query.eq('parish_id', filterParishId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   
@@ -354,11 +366,17 @@ export const deleteMusicAudioLink = async (linkId: string): Promise<void> => {
 
 // ========== RECURRING SCHEDULES ==========
 
-export const getRecurringSchedules = async (): Promise<RecurringSchedule[]> => {
-  const { data, error } = await supabase
+export const getRecurringSchedules = async (filterParishId?: string): Promise<RecurringSchedule[]> => {
+  let query = supabase
     .from('recurring_schedules')
     .select('*')
     .order('week_of_month, day_of_week');
+  
+  if (filterParishId) {
+    query = query.eq('parish_id', filterParishId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   
@@ -535,11 +553,17 @@ export const deleteScheduleOverride = async (id: string): Promise<void> => {
 
 // ========== RECURRING SALMIST SCHEDULES ==========
 
-export const getRecurringSalmistSchedules = async (): Promise<RecurringSalmistSchedule[]> => {
-  const { data, error } = await supabase
+export const getRecurringSalmistSchedules = async (filterParishId?: string): Promise<RecurringSalmistSchedule[]> => {
+  let query = supabase
     .from('recurring_salmist_schedules')
     .select('*')
     .order('week_of_month, day_of_week');
+  
+  if (filterParishId) {
+    query = query.eq('parish_id', filterParishId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   
@@ -708,11 +732,17 @@ export const deleteSalmistScheduleOverride = async (id: string): Promise<void> =
 
 // ========== PSALM MELODIES ==========
 
-export const getPsalmMelodies = async (): Promise<PsalmMelody[]> => {
-  const { data, error } = await supabase
+export const getPsalmMelodies = async (filterParishId?: string): Promise<PsalmMelody[]> => {
+  let query = supabase
     .from('psalm_melodies')
     .select('*')
     .order('date', { ascending: false });
+  
+  if (filterParishId) {
+    query = query.eq('parish_id', filterParishId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   
@@ -877,7 +907,8 @@ export interface GeneratedSalmistSchedule {
 
 export const generateSchedulesForMonth = async (
   year: number,
-  month: number
+  month: number,
+  filterParishId?: string
 ): Promise<{
   musicianSchedules: GeneratedMusicianSchedule[];
   salmistSchedules: GeneratedSalmistSchedule[];
@@ -886,8 +917,8 @@ export const generateSchedulesForMonth = async (
   
   // Buscar dados
   const [recurringSchedules, recurringSalmistSchedules, scheduleOverrides, salmistScheduleOverrides] = await Promise.all([
-    getRecurringSchedules(),
-    getRecurringSalmistSchedules(),
+    getRecurringSchedules(filterParishId),
+    getRecurringSalmistSchedules(filterParishId),
     getScheduleOverrides(monthStr),
     getSalmistScheduleOverrides(monthStr),
   ]);
@@ -936,11 +967,17 @@ export const generateSchedulesForMonth = async (
 
 // ========== SLIDE FOLDERS ==========
 
-export const getSlideFolders = async (): Promise<SlideFolder[]> => {
-  const { data, error } = await supabase
+export const getSlideFolders = async (filterParishId?: string): Promise<SlideFolder[]> => {
+  let query = supabase
     .from('slide_folders')
     .select('*')
     .order('name');
+  
+  if (filterParishId) {
+    query = query.eq('parish_id', filterParishId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   
@@ -996,11 +1033,17 @@ export const deleteSlideFolder = async (folderId: string): Promise<void> => {
 
 // ========== SLIDE FILES ==========
 
-export const getSlideFiles = async (): Promise<SlideFile[]> => {
-  const { data, error } = await supabase
+export const getSlideFiles = async (filterParishId?: string): Promise<SlideFile[]> => {
+  let query = supabase
     .from('slide_files')
     .select('*')
     .order('uploaded_at', { ascending: false });
+  
+  if (filterParishId) {
+    query = query.eq('parish_id', filterParishId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   

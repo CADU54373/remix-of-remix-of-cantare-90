@@ -45,9 +45,12 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVisitorParish } from "@/contexts/VisitorParishContext";
 
 const Escalas = () => {
-  const { parishId } = useAuth();
+  const { parishId, isAuthenticated } = useAuth();
+  const { visitorParishId, isVisitor } = useVisitorParish();
+  const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const [viewMode, setViewMode] = useState<'musicos' | 'salmistas'>('musicos');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -110,9 +113,10 @@ const Escalas = () => {
 
   const refreshData = async () => {
     try {
+      const pid = effectiveParishId || undefined;
       const [schedules, melodies] = await Promise.all([
-        generateSchedulesForMonth(selectedYear, selectedMonth),
-        getPsalmMelodies()
+        generateSchedulesForMonth(selectedYear, selectedMonth, pid),
+        getPsalmMelodies(pid)
       ]);
       setMusicianSchedules(schedules.musicianSchedules.sort((a, b) => a.date.getTime() - b.date.getTime()));
       setSalmistSchedules(schedules.salmistSchedules.sort((a, b) => a.date.getTime() - b.date.getTime()));

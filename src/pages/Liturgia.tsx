@@ -22,6 +22,7 @@ import { fetchLiturgia, LiturgiaResponse } from "@/lib/liturgia-api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVisitorParish } from "@/contexts/VisitorParishContext";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -32,6 +33,8 @@ import {
 
 const Liturgia = () => {
   const { isAuthenticated, parishId } = useAuth();
+  const { visitorParishId, isVisitor } = useVisitorParish();
+  const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const [searchParams] = useSearchParams();
   const dateFromUrl = searchParams.get('date');
   
@@ -111,7 +114,7 @@ const Liturgia = () => {
 
   const refreshData = async () => {
     try {
-      const melodies = await getPsalmMelodies();
+      const melodies = await getPsalmMelodies(effectiveParishId || undefined);
       console.log("📚 Melodias carregadas do banco:", melodies);
       setPsalmMelodies(melodies);
     } catch (error) {

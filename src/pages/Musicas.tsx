@@ -28,11 +28,15 @@ import { VideoLinksList } from "@/components/VideoLinksList";
 import { AudioLinksManager } from "@/components/AudioLinksManager";
 import { AudioLinksList } from "@/components/AudioLinksList";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVisitorParish } from "@/contexts/VisitorParishContext";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Musicas = () => {
   const { isAuthenticated, parishId } = useAuth();
+  const { visitorParishId, isVisitor } = useVisitorParish();
+  const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
+  const isReadOnly = !isAuthenticated;
   const [folders, setFolders] = useState<Folder[]>([]);
   const [files, setFiles] = useState<MusicFile[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -64,8 +68,8 @@ const Musicas = () => {
   const refreshData = async () => {
     try {
       const [foldersData, filesData] = await Promise.all([
-        getFolders(),
-        getMusicFiles()
+        getFolders(effectiveParishId || undefined),
+        getMusicFiles(effectiveParishId || undefined)
       ]);
       setFolders(foldersData);
       setFiles(filesData);
@@ -341,32 +345,32 @@ const Musicas = () => {
           <Alert>
             <Lock className="h-4 w-4" />
             <AlertDescription>
-              Faça login para adicionar músicas
+              {isVisitor ? "Modo visitante: apenas visualização" : "Faça login para adicionar músicas"}
             </AlertDescription>
           </Alert>
         )}
         
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            onClick={() => requireAuth(() => setNewFolderDialogOpen(true), "criar pastas")}
-            variant="outline"
-            disabled={!isAuthenticated}
-            className="w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Pasta
-          </Button>
-          {currentFolderId && (
-            <Button 
-              onClick={() => requireAuth(() => setUploadDialogOpen(true), "fazer upload")}
-              disabled={!isAuthenticated}
+        {!isReadOnly && (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={() => requireAuth(() => setNewFolderDialogOpen(true), "criar pastas")}
+              variant="outline"
               className="w-full sm:w-auto"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload PDF
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Pasta
             </Button>
-          )}
-        </div>
+            {currentFolderId && (
+              <Button 
+                onClick={() => requireAuth(() => setUploadDialogOpen(true), "fazer upload")}
+                className="w-full sm:w-auto"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload PDF
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filtros */}

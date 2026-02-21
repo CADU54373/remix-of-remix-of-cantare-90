@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Music, Calendar, BookOpen, Church, LogIn, LogOut, UserCheck, Presentation, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,15 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, isPriest, isSuperAdmin, signOut, userRole } = useAuth();
+  const { isAuthenticated, isPriest, isSuperAdmin, signOut, userRole, isLoading } = useAuth();
   const { visitorParishName, clearVisitorParish, isVisitor } = useVisitorParish();
+
+  // Route guard: redirect to landing if not authenticated and not visitor
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !isVisitor) {
+      navigate("/");
+    }
+  }, [isLoading, isAuthenticated, isVisitor, navigate]);
 
   // Mostrar "Aprovar Usuários" para padres e super admins
   const canApproveUsers = isPriest || isSuperAdmin;
