@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/collapsible";
 
 const Liturgia = () => {
-  const { isAuthenticated, parishId } = useAuth();
+  const { isAuthenticated, parishId, isLoading: authLoading } = useAuth();
   const { visitorParishId, isVisitor } = useVisitorParish();
   const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const [searchParams] = useSearchParams();
@@ -80,9 +80,13 @@ const Liturgia = () => {
   };
 
   useEffect(() => {
-    refreshData();
     loadLiturgy();
   }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
+    refreshData();
+  }, [authLoading, effectiveParishId]);
 
   useEffect(() => {
     const melody = psalmMelodies.find(m => m.date === selectedDate && m.psalmIndex === currentSalmoIndex);
@@ -113,8 +117,12 @@ const Liturgia = () => {
   };
 
   const refreshData = async () => {
+    if (!effectiveParishId) {
+      setPsalmMelodies([]);
+      return;
+    }
     try {
-      const melodies = await getPsalmMelodies(effectiveParishId || undefined);
+      const melodies = await getPsalmMelodies(effectiveParishId);
       console.log("📚 Melodias carregadas do banco:", melodies);
       setPsalmMelodies(melodies);
     } catch (error) {

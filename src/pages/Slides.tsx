@@ -20,7 +20,7 @@ import { useVisitorParish } from "@/contexts/VisitorParishContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Slides = () => {
-  const { isAuthenticated, parishId } = useAuth();
+  const { isAuthenticated, parishId, isLoading: authLoading } = useAuth();
   const { visitorParishId, isVisitor } = useVisitorParish();
   const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const isReadOnly = !isAuthenticated;
@@ -44,15 +44,25 @@ const Slides = () => {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!effectiveParishId) {
+      setFolders([]);
+      setFiles([]);
+      return;
+    }
     refreshData();
-  }, []);
+  }, [authLoading, effectiveParishId]);
 
   const refreshData = async () => {
+    if (!effectiveParishId) {
+      setFolders([]);
+      setFiles([]);
+      return;
+    }
     try {
-      const pid = effectiveParishId || undefined;
       const [foldersData, filesData] = await Promise.all([
-        getSlideFolders(pid),
-        getSlideFiles(pid)
+        getSlideFolders(effectiveParishId),
+        getSlideFiles(effectiveParishId)
       ]);
       setFolders(foldersData);
       setFiles(filesData);

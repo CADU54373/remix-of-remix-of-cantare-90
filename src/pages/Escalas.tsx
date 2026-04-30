@@ -48,7 +48,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useVisitorParish } from "@/contexts/VisitorParishContext";
 
 const Escalas = () => {
-  const { parishId, isAuthenticated } = useAuth();
+  const { parishId, isAuthenticated, isLoading: authLoading } = useAuth();
   const { visitorParishId, isVisitor } = useVisitorParish();
   const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const [viewMode, setViewMode] = useState<'musicos' | 'salmistas'>('musicos');
@@ -108,15 +108,27 @@ const Escalas = () => {
   });
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!effectiveParishId) {
+      setMusicianSchedules([]);
+      setSalmistSchedules([]);
+      setPsalmMelodies([]);
+      return;
+    }
     refreshData();
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, authLoading, effectiveParishId]);
 
   const refreshData = async () => {
+    if (!effectiveParishId) {
+      setMusicianSchedules([]);
+      setSalmistSchedules([]);
+      setPsalmMelodies([]);
+      return;
+    }
     try {
-      const pid = effectiveParishId || undefined;
       const [schedules, melodies] = await Promise.all([
-        generateSchedulesForMonth(selectedYear, selectedMonth, pid),
-        getPsalmMelodies(pid)
+        generateSchedulesForMonth(selectedYear, selectedMonth, effectiveParishId),
+        getPsalmMelodies(effectiveParishId)
       ]);
       setMusicianSchedules(schedules.musicianSchedules.sort((a, b) => a.date.getTime() - b.date.getTime()));
       setSalmistSchedules(schedules.salmistSchedules.sort((a, b) => a.date.getTime() - b.date.getTime()));
