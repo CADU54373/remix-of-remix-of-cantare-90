@@ -13,7 +13,7 @@ import { useVisitorParish } from "@/contexts/VisitorParishContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, parishId } = useAuth();
+  const { isAuthenticated, parishId, isLoading: authLoading } = useAuth();
   const { visitorParishId, isVisitor } = useVisitorParish();
   const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const [loading, setLoading] = useState(true);
@@ -29,22 +29,34 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
+    if (authLoading) return;
     loadData();
-  }, [effectiveParishId]);
+  }, [authLoading, effectiveParishId]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       
       const today = new Date().toISOString().split('T')[0];
-      const pid = effectiveParishId || undefined;
-      
+
+      if (!effectiveParishId) {
+        const liturgy = await fetchLiturgia(today).catch(() => null);
+        if (liturgy) {
+          setLiturgyColor(liturgy.cor);
+          setLiturgyName(liturgy.liturgia);
+        }
+        setStats({ totalFiles: 0, totalRecurringSchedules: 0, totalSalmistSchedules: 0, totalFolders: 0, totalMelodies: 0 });
+        setTodayPsalm(null);
+        setLoading(false);
+        return;
+      }
+
       const [files, folders, schedules, salmistSchedules, melodies, liturgy] = await Promise.all([
-        getMusicFiles(pid),
-        getFolders(pid),
-        getRecurringSchedules(pid),
-        getRecurringSalmistSchedules(pid),
-        getPsalmMelodies(pid),
+        getMusicFiles(effectiveParishId),
+        getFolders(effectiveParishId),
+        getRecurringSchedules(effectiveParishId),
+        getRecurringSalmistSchedules(effectiveParishId),
+        getPsalmMelodies(effectiveParishId),
         fetchLiturgia(today).catch(() => null),
       ]);
 

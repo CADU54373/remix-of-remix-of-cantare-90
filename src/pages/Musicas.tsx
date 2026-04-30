@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Musicas = () => {
-  const { isAuthenticated, parishId } = useAuth();
+  const { isAuthenticated, parishId, isLoading: authLoading } = useAuth();
   const { visitorParishId, isVisitor } = useVisitorParish();
   const effectiveParishId = isAuthenticated ? parishId : visitorParishId;
   const isReadOnly = !isAuthenticated;
@@ -62,14 +62,25 @@ const Musicas = () => {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!effectiveParishId) {
+      setFolders([]);
+      setFiles([]);
+      return;
+    }
     refreshData();
-  }, []);
+  }, [authLoading, effectiveParishId]);
 
   const refreshData = async () => {
+    if (!effectiveParishId) {
+      setFolders([]);
+      setFiles([]);
+      return;
+    }
     try {
       const [foldersData, filesData] = await Promise.all([
-        getFolders(effectiveParishId || undefined),
-        getMusicFiles(effectiveParishId || undefined)
+        getFolders(effectiveParishId),
+        getMusicFiles(effectiveParishId)
       ]);
       setFolders(foldersData);
       setFiles(filesData);
