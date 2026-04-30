@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { Church, Users, Shield, Plus, Trash2, UserCog, LogOut, ChevronDown, ChevronUp } from "lucide-react";
+import { Church, Users, Shield, Plus, Trash2, UserCog, LogOut, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import CreateUserDialog from "@/components/CreateUserDialog";
@@ -236,6 +236,68 @@ export default function SuperAdmin() {
     navigate('/');
   };
 
+  const escapeCsvValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    let str = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+      str = '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  };
+
+  const tableToCsv = (rows: any[]): string => {
+    if (!rows || rows.length === 0) return '';
+    const headers: string[] = Array.from(
+      rows.reduce((set: Set<string>, row) => {
+        Object.keys(row).forEach(k => set.add(k));
+        return set;
+      }, new Set<string>())
+    );
+    const lines = [headers.join(',')];
+    rows.forEach(row => {
+      lines.push(headers.map((h: string) => escapeCsvValue(row[h])).join(','));
+    });
+    return lines.join('\n');
+  };
+
+  const handleDownloadAllData = async () => {
+    const tables = [
+      'parishes', 'user_profiles', 'user_roles',
+      'folders', 'music_files', 'music_video_links', 'music_audio_links',
+      'slide_folders', 'slide_files',
+      'recurring_schedules', 'schedule_overrides',
+      'recurring_salmist_schedules', 'salmist_schedule_overrides',
+      'psalm_melodies', 'psalm_melody_audio_links',
+    ] as const;
+
+    toast({ title: "Gerando download...", description: "Aguarde enquanto preparamos os dados." });
+
+    try {
+      const dateStr = new Date().toISOString().split('T')[0];
+      for (const table of tables) {
+        const { data, error } = await supabase.from(table as any).select('*');
+        if (error) {
+          console.error(`Erro ao buscar ${table}:`, error);
+          continue;
+        }
+        const csv = tableToCsv(data || []);
+        const blob = new Blob([csv || 'sem dados'], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${table}_${dateStr}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        await new Promise(r => setTimeout(r, 200));
+      }
+      toast({ title: "Download concluído!", description: "Todos os arquivos CSV foram baixados." });
+    } catch (e: any) {
+      toast({ title: "Erro", description: e.message || "Falha ao baixar dados.", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -248,10 +310,16 @@ export default function SuperAdmin() {
               <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Gerenciamento do Sistema</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout} className="flex-shrink-0">
-            <LogOut className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Sair</span>
-          </Button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm" onClick={handleDownloadAllData}>
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Baixar CSV</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sair</span>
+            </Button>
+          </div>
         </div>
       </header>
 
