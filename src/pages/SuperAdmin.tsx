@@ -247,7 +247,7 @@ export default function SuperAdmin() {
 
   const tableToCsv = (rows: any[]): string => {
     if (!rows || rows.length === 0) return '';
-    const headers = Array.from(
+    const headers: string[] = Array.from(
       rows.reduce((set: Set<string>, row) => {
         Object.keys(row).forEach(k => set.add(k));
         return set;
@@ -255,7 +255,7 @@ export default function SuperAdmin() {
     );
     const lines = [headers.join(',')];
     rows.forEach(row => {
-      lines.push(headers.map(h => escapeCsvValue(row[h])).join(','));
+      lines.push(headers.map((h: string) => escapeCsvValue(row[h])).join(','));
     });
     return lines.join('\n');
   };
