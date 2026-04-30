@@ -37,9 +37,19 @@ interface UserRole {
 }
 
 export default function SuperAdmin() {
-  const { signOut } = useAuth();
+  const { signOut, isAuthenticated, isSuperAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Guard: wait for auth and redirect non-super-admins to prevent blank screens
+  React.useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      navigate("/auth");
+    } else if (!isSuperAdmin) {
+      navigate("/dashboard");
+    }
+  }, [authLoading, isAuthenticated, isSuperAdmin, navigate]);
   const [newParishName, setNewParishName] = useState("");
   const [newParishDialogOpen, setNewParishDialogOpen] = useState(false);
   const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false);
