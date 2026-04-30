@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { Church, Users, Shield, Plus, Trash2, UserCog, LogOut, ChevronDown, ChevronUp } from "lucide-react";
+import { Church, Users, Shield, Plus, Trash2, UserCog, LogOut, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import CreateUserDialog from "@/components/CreateUserDialog";
