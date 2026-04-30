@@ -310,10 +310,16 @@ export default function SuperAdmin() {
               <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Gerenciamento do Sistema</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout} className="flex-shrink-0">
-            <LogOut className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Sair</span>
-          </Button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm" onClick={handleDownloadAllData}>
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Baixar CSV</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sair</span>
+            </Button>
+          </div>
         </div>
       </header>
 
