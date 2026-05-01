@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +42,7 @@ export default function SuperAdmin() {
   const queryClient = useQueryClient();
 
   // Guard: wait for auth and redirect non-super-admins to prevent blank screens
-  React.useEffect(() => {
+  useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
       navigate("/auth");
