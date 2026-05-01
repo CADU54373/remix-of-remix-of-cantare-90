@@ -308,6 +308,15 @@ export default function SuperAdmin() {
     }
   };
 
+  // Show loading while auth is hydrating to prevent blank screen on refresh
+  if (authLoading || !isAuthenticated || !isSuperAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
