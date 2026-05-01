@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,9 +37,19 @@ interface UserRole {
 }
 
 export default function SuperAdmin() {
-  const { signOut } = useAuth();
+  const { signOut, isAuthenticated, isSuperAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Guard: wait for auth and redirect non-super-admins to prevent blank screens
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      navigate("/auth");
+    } else if (!isSuperAdmin) {
+      navigate("/dashboard");
+    }
+  }, [authLoading, isAuthenticated, isSuperAdmin, navigate]);
   const [newParishName, setNewParishName] = useState("");
   const [newParishDialogOpen, setNewParishDialogOpen] = useState(false);
   const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false);
@@ -297,6 +307,15 @@ export default function SuperAdmin() {
       toast({ title: "Erro", description: e.message || "Falha ao baixar dados.", variant: "destructive" });
     }
   };
+
+  // Show loading while auth is hydrating to prevent blank screen on refresh
+  if (authLoading || !isAuthenticated || !isSuperAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -19,11 +19,35 @@ const Layout = ({ children }: LayoutProps) => {
   const { visitorParishName, clearVisitorParish, isVisitor } = useVisitorParish();
 
   // Route guard: redirect to landing if not authenticated and not visitor
+  // Wait a tick to allow auth/visitor contexts to hydrate from localStorage/session
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && !isVisitor) {
-      navigate("/");
-    }
+    if (isLoading) return;
+    if (isAuthenticated || isVisitor) return;
+    const timer = setTimeout(() => {
+      if (!isAuthenticated && !isVisitor) {
+        navigate("/");
+      }
+    }, 300);
+    return () => clearTimeout(timer);
   }, [isLoading, isAuthenticated, isVisitor, navigate]);
+
+  // Show loading state while auth is being determined to prevent blank screens
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  // If not authenticated and not visitor, show loading (redirect will happen via effect)
+  if (!isAuthenticated && !isVisitor) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
 
   // Mostrar "Aprovar Usuários" para padres e super admins
   const canApproveUsers = isPriest || isSuperAdmin;
